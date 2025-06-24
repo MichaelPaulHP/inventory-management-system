@@ -31,8 +31,8 @@ FROM base AS development
 WORKDIR /var/www/html
 
 # Copiar archivos de dependencias primero (para mejor cache)
-# COPY composer.json composer.lock ./
-# COPY package.json package-lock.json ./
+COPY composer.json composer.lock ./
+COPY package.json package-lock.json ./
 
 # Instalar dependencias PHP y Node.js
 RUN composer install --no-interaction --no-scripts --no-autoloader
