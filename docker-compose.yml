@@ -4,6 +4,7 @@ services:
         container_name: mysql-db
         restart: always
         environment:
+            MYSQL_USER: ${DB_USERNAME}
             MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
             MYSQL_DATABASE: ${DB_DATABASE}
         ports:
@@ -17,7 +18,7 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
-            target: development  
+            target: development
         container_name: laravel-app-dev
         restart: unless-stopped
         working_dir: /var/www/html
@@ -25,13 +26,6 @@ services:
             - "8000:8000"
         volumes:
             - ./:/var/www/html
-        environment:
-            - DB_CONNECTION=mysql
-            - DB_HOST=mysql
-            - DB_PORT=3306
-            - DB_DATABASE=${DB_DATABASE}
-            - DB_USERNAME=${DB_USERNAME}
-            - DB_PASSWORD=${DB_PASSWORD}
         depends_on:
             - mysql
         networks:
