@@ -1,5 +1,5 @@
 # Etapa base para desarrollo
-FROM php:8.2-cli AS base
+FROM php:8.2-cli AS development
 WORKDIR /var/www/html
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y \
@@ -19,17 +19,11 @@ RUN apt-get update && apt-get upgrade -y \
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Copiamos solo los archivos de dependencias para aprovechar la caché de Docker
-COPY composer.json composer.lock ./
-COPY package.json package-lock.json ./
-
+# Copiamos el resto del código
+COPY . .
 # Instalamos dependencias
 RUN composer install --no-interaction
 RUN npm install
-
-# Copiamos el resto del código
-COPY . .
-
 EXPOSE 8000
 
 # Comando por defecto (se sobreescribe en docker-compose.yml)

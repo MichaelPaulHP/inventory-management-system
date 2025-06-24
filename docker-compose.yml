@@ -17,7 +17,7 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
-            # target: base # Solo si tienes multistage builds
+            target: development  
         container_name: laravel-app-dev
         restart: unless-stopped
         working_dir: /var/www/html
