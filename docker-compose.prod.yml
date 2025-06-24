@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # Servicio de la aplicación Laravel (PHP-FPM para producción)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: final_app # Construimos la imagen hasta la etapa final
+    container_name: laravel-app-prod
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      # En producción, el código está dentro de la imagen. Solo persistimos storage y .env
+      - ./.env:/var/www/html/.env
+      - ./storage:/var/www/html/storage
+    depends_on:
+      - mysql-prod
+    networks:
+      - laravel_network
+    # El CMD por defecto del Dockerfile es 'php-fpm', que es lo que queremos
+
+  # Servidor web Nginx
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: nginx-prod
+    restart: unless-stopped
+    ports:
+      - "80:80" # Puerto 80 para producción
+    volumes:
+      - ./public:/var/www/html/public # Solo el publico es servido por Nginx
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - laravel_network
+
+  # Base de datos MySQL
+  mysql-prod:
+    image:  mysql:5.7
+    container_name: mysql-db-prod # Nombre diferente para no chocar con dev
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+    volumes:
+      - mysql_data_prod:/var/lib/mysql # Volumen diferente para no chocar con dev
+    networks:
+      - laravel_network
+    # No es necesario exponer el puerto 3306 al host en producción por seguridad
+  
+
+networks:
+  laravel_network:
+    driver: bridge
+
+volumes:
+  mysql_data_prod:
+    driver: local

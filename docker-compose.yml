@@ -4,8 +4,8 @@ services:
         container_name: mysql-db
         restart: always
         environment:
-            MYSQL_ROOT_PASSWORD: examplepassword
-            MYSQL_DATABASE: inventory_management_system
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+            MYSQL_DATABASE: ${DB_DATABASE}
         ports:
             - "3306:3306"
         volumes:
@@ -14,27 +14,29 @@ services:
             - laravel_network
 
     app:
-        image: inert/laravel-app
-        container_name: laravel-app
-        restart: always
+        build:
+            context: .
+            dockerfile: Dockerfile
+            # target: base # Solo si tienes multistage builds
+        container_name: laravel-app-dev
+        restart: unless-stopped
+        working_dir: /var/www/html
         ports:
             - "8000:8000"
-        depends_on:
-            - mysql
+        volumes:
+            - ./:/var/www/html
         environment:
+            - DB_CONNECTION=mysql
             - DB_HOST=mysql
             - DB_PORT=3306
-            - DB_DATABASE=inventory_management_system
-            - DB_USERNAME=root
-            - DB_PASSWORD=examplepassword
+            - DB_DATABASE=${DB_DATABASE}
+            - DB_USERNAME=${DB_USERNAME}
+            - DB_PASSWORD=${DB_PASSWORD}
+        depends_on:
+            - mysql
         networks:
             - laravel_network
-        command: >
-            bash -c "
-                php artisan migrate &&
-                php artisan storage:link &&
-                php artisan serve --host=0.0.0.0 --port=8000
-            "
+        command: php artisan serve --host=0.0.0.0 --port=8000
 
 volumes:
     mysql_data:
