@@ -1,19 +1,26 @@
 services:
+    # Base de datos MySQL
     mysql:
         image: mysql:5.7
-        container_name: mysql-db
-        restart: always
+        container_name: mysql-db-dev
+        restart: unless-stopped
         environment:
-            MYSQL_USER: ${DB_USERNAME}
             MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
             MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_USER: ${DB_USERNAME}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
         ports:
             - "3306:3306"
         volumes:
-            - mysql_data:/var/lib/mysql
+            - mysql_data_dev:/var/lib/mysql
         networks:
             - laravel_network
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+            timeout: 20s
+            retries: 10
 
+    # Aplicación Laravel
     app:
         build:
             context: .
@@ -26,14 +33,41 @@ services:
             - "8000:8000"
         volumes:
             - ./:/var/www/html
+            - /var/www/html/vendor      # Excluir vendor del bind mount
+            - /var/www/html/node_modules # Excluir node_modules del bind mount
+        environment:
+            # Solo override las variables específicas de Docker
+            - DB_HOST=mysql  # ← Cambiar de localhost a mysql (nombre del servicio)
+            # El resto de variables vienen del .env montado
         depends_on:
-            - mysql
+            mysql:
+                condition: service_healthy
         networks:
             - laravel_network
         command: php artisan serve --host=0.0.0.0 --port=8000
 
+    # Servidor Vite para desarrollo de assets
+    vite:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            target: development
+        container_name: vite-dev
+        restart: unless-stopped
+        working_dir: /var/www/html
+        ports:
+            - "5173:5173"
+        volumes:
+            - ./:/var/www/html
+            - /var/www/html/node_modules
+        command: npm run dev -- --host 0.0.0.0
+        networks:
+            - laravel_network
+
 volumes:
-    mysql_data:
+    mysql_data_dev:
+        driver: local
 
 networks:
     laravel_network:
+        driver: bridge
