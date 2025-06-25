@@ -33,7 +33,7 @@ services:
             - "8000:8000"
         volumes:
             - ./:/var/www/html
-            - ./.env:/var/www/html/.env:ro
+            - ./.env:/var/www/html/.env 
             - /var/www/html/vendor      # Excluir vendor del bind mount
             - /var/www/html/node_modules # Excluir node_modules del bind mount
         environment:

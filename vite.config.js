@@ -1,6 +1,7 @@
-import { defineConfig } from 'vite';
-import laravel from 'laravel-vite-plugin';
+import { defineConfig } from 'vite'; 
 import { viteStaticCopy } from "vite-plugin-static-copy";
+import { laravel } from 'laravel-vite-plugin';
+
 
 export default defineConfig({
     plugins: [

@@ -44,12 +44,17 @@ COPY . .
 # Completar instalación de Composer con autoloader
 RUN composer dump-autoload --optimize
 
+# Copiar script de inicialización
+COPY docker/init.sh /usr/local/bin/init.sh
+RUN chmod +x /usr/local/bin/init.sh
+
 # Configurar permisos
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
 
 EXPOSE 8000
+ENTRYPOINT ["/usr/local/bin/init.sh"]
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
 
 # Etapa para construcción de assets (producción)
@@ -104,6 +109,10 @@ COPY --from=asset-builder /var/www/html/public/build ./public/build
 # Completar instalación
 RUN composer dump-autoload --optimize
 
+# Copiar script de inicialización
+COPY docker/init.sh /usr/local/bin/init.sh
+RUN chmod +x /usr/local/bin/init.sh
+
 # Configurar permisos
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
@@ -113,4 +122,5 @@ RUN chown -R www-data:www-data /var/www/html \
 USER www-data
 
 EXPOSE 9000
+ENTRYPOINT ["/usr/local/bin/init.sh"]
 CMD ["php-fpm"]
