@@ -9,7 +9,11 @@ A robust Inventory Management System built with **Laravel 10** and **MySQL**, de
 The system is structured using a clear and efficient database schema:
 
 ![Database Diagram](https://github.com/fajarghifar/inventory-management-system/assets/71541409/0c7d4163-96f5-4724-8741-4615e52ecf98)
-
+## installation
+- docker-compose build  
+- docker-compose up -d
+- php artisan migrate:fresh --seed
+- php artisan storage:link
 ## 🌟 Key Features
 
 -   **POS (Point of Sale)**
