@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite'; 
+import { defineConfig } from 'vite';
 import { viteStaticCopy } from "vite-plugin-static-copy";
-import { laravel } from 'laravel-vite-plugin';
+import laravel  from 'laravel-vite-plugin';
 
 
 export default defineConfig({
@@ -50,6 +50,9 @@ export default defineConfig({
         port: 5173,
         hmr: {
             host: 'localhost',
+        },
+        watch: {
+            usePolling: true,
         },
     },
 });

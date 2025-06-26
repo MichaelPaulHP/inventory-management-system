@@ -17,7 +17,6 @@ RUN apt-get update && apt-get upgrade -y \
         git \
         unzip \
     && curl -sL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y nodejs \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install pdo_mysql mbstring gd xml zip intl \
     && apt-get clean \
