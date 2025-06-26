@@ -32,11 +32,10 @@ WORKDIR /var/www/html
 
 # Copiar archivos de dependencias primero (para mejor cache)
 COPY composer.json composer.lock ./
-COPY package.json package-lock.json ./
 
 # Instalar dependencias PHP y Node.js
 RUN composer install --no-interaction --no-scripts --no-autoloader
-RUN npm install
+
 
 # Copiar el resto del código
 COPY . .
@@ -62,8 +61,6 @@ FROM base AS asset-builder
 WORKDIR /var/www/html
 
 # Copiar archivos necesarios para build
-COPY package.json package-lock.json ./
-COPY vite.config.js tailwind.config.js ./
 COPY resources/ resources/
 
 # Instalar dependencias y compilar assets
@@ -103,8 +100,6 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-script
 
 # Copiar código de la aplicación
 COPY . .
-# Copiar assets compilados desde asset-builder
-COPY --from=asset-builder /var/www/html/public/build ./public/build
 
 # Completar instalación
 RUN composer dump-autoload --optimize

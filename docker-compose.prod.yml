@@ -18,6 +18,7 @@ services:
       - ./.env:/var/www/html/.env:ro
       - app_storage:/var/www/html/storage
       - app_bootstrap_cache:/var/www/html/bootstrap/cache
+      - vite_assets:/var/www/html/public/build:ro
     depends_on:
       mysql-prod:
         condition: service_healthy
@@ -27,6 +28,24 @@ services:
       - laravel_network
     healthcheck:
       test: ["CMD", "php", "artisan", "about"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  vite:
+    build:
+      context: .
+      dockerfile: Dockerfile.vite
+      target: production
+    container_name: vite-assets-prod
+    restart: unless-stopped
+    ports:
+      - "3000:80"  # Puerto separado para assets
+    environment:
+      - NODE_ENV=production  # ← Para builds optimizados
+    networks:
+      - laravel_network
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -100,4 +119,6 @@ volumes:
   app_storage:
     driver: local
   app_bootstrap_cache:
+    driver: local
+  vite_assets:
     driver: local

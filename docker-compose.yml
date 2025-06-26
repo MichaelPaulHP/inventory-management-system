@@ -33,13 +33,15 @@ services:
             - "8000:8000"
         volumes:
             - ./:/var/www/html
-            - ./.env:/var/www/html/.env 
+            - ./.env:/var/www/html/.env
             - /var/www/html/vendor      # Excluir vendor del bind mount
-            - /var/www/html/node_modules # Excluir node_modules del bind mount
+
         environment:
             # Solo override las variables específicas de Docker
             - DB_HOST=mysql  # ← Cambiar de localhost a mysql (nombre del servicio)
             # El resto de variables vienen del .env montado
+            - VITE_HOST=vite  # Para que Laravel sepa dónde está Vite
+            - VITE_PORT=5173
         depends_on:
             mysql:
                 condition: service_healthy
@@ -51,24 +53,35 @@ services:
     vite:
         build:
             context: .
-            dockerfile: Dockerfile
+            dockerfile: Dockerfile.vite
             target: development
         container_name: vite-dev
         restart: unless-stopped
-        working_dir: /var/www/html
         ports:
             - "5173:5173"
         volumes:
-            - ./:/var/www/html
-            - /var/www/html/node_modules
-        command: npm run dev -- --host 0.0.0.0
+            # Solo montar lo que necesita Vite
+            - ./resources:/app/resources:ro
+            - ./vite.config.js:/app/vite.config.js:ro
+            - ./package.json:/app/package.json:ro
+            - ./package-lock.json:/app/package-lock.json:ro
+            # Assets compilados se comparten con Laravel
+            - vite_assets:/app/public/build
         networks:
             - laravel_network
+        environment:
+            - NODE_ENV=development
+        healthcheck:
+            test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5173" ]
+            interval: 30s
+            timeout: 10s
+            retries: 3
 
 volumes:
     mysql_data_dev:
         driver: local
-
+    vite_assets:
+        driver: local
 networks:
     laravel_network:
         driver: bridge

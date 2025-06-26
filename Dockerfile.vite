@@ -1,0 +1,56 @@
+# Dockerfile especializado para Vite
+FROM node:18-alpine AS base
+
+WORKDIR /app
+
+# Instalar dependencias necesarias para desarrollo
+RUN apk add --no-cache git
+
+# Etapa para desarrollo
+FROM base AS development
+
+# Copiar archivos de dependencias
+COPY package.json package-lock.json ./
+
+# Instalar todas las dependencias (incluidas dev)
+RUN npm install
+
+# Copiar configuración de Vite y otros archivos necesarios
+COPY vite.config.js ./
+
+# El código fuente se monta como volumen en desarrollo
+# para hot reload
+
+EXPOSE 5173
+CMD ["npm", "run", "dev"]
+
+# Etapa para construcción (producción)
+FROM base AS builder
+
+# Copiar archivos de dependencias
+COPY package.json package-lock.json ./
+
+# Instalar solo dependencias de producción + dev necesarias para build
+RUN npm ci
+
+# Copiar archivos de configuración
+COPY vite.config.js ./
+
+# Copiar recursos que necesita Vite para compilar
+COPY resources/ resources/
+
+# Compilar assets
+RUN npm run build
+
+# Etapa final para servir assets estáticos (producción)
+FROM nginx:alpine AS production
+
+# Copiar configuración de nginx para servir assets
+COPY docker/nginx/vite.conf /etc/nginx/conf.d/default.conf
+
+# Copiar assets compilados
+COPY --from=builder /app/public/build /usr/share/nginx/html/build
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
