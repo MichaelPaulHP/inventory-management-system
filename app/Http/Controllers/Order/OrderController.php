@@ -55,7 +55,7 @@ class OrderController extends Controller
 
             OrderDetails::insert($oDetails);
         }
-
+        Log::info('SOTEEEEEEEE');
         // Delete Cart Sopping History
         Cart::destroy();
 
@@ -76,14 +76,16 @@ class OrderController extends Controller
     public function update(Order $order, Request $request)
     {
         // TODO refactoring
+        Log::info('HOLAAAAAAAAAAAA');
 
-        // Reduce the stock
         $products = OrderDetails::where('order_id', $order)->get();
 
         foreach ($products as $product) {
-            Product::where('id', $product->product_id)
-                ->update(['quantity' => DB::raw('quantity-' . $product->quantity)]);
+            Product::where('id', $product->id)
+            ->decrement('quantity', $product->quantity);
         }
+        Log::info('GAAAAAAAAAAAAAA');
+
 
         $order->update([
             'order_status' => OrderStatus::COMPLETE,
@@ -91,7 +93,7 @@ class OrderController extends Controller
 
         return redirect()
             ->route('orders.complete')
-            ->with('success', 'Order has been completed!');
+            ->with('success', 'Order has been completed ! !!!!!!!!!!!!!!!!');
     }
 
     public function destroy(Order $order)
