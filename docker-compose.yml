@@ -34,7 +34,7 @@ services:
         volumes:
             - ./:/var/www/html
             - ./.env:/var/www/html/.env
-            - /var/www/html/vendor      # Excluir vendor del bind mount
+                 #- /var/www/html/vendor  Excluir vendor del bind mount
 
         environment:
             # Solo override las variables específicas de Docker
